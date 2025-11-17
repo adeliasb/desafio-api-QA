@@ -1,0 +1,124 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-11-17T02:03:48.814Z",
+    "end": "2025-11-17T02:03:49.435Z",
+    "duration": 621,
+    "testsRegistered": 2,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "ebe72c36-4063-461b-96d6-b6bce73234d1",
+      "title": "",
+      "fullFile": "cypress/e2e/api/02_users.cy.js",
+      "file": "cypress/e2e/api/02_users.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "3f5756b4-86f3-4cb8-b1a7-b6e7bac689b4",
+          "title": "Users - API",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Criar usuário válido deve retornar id e status 201",
+              "fullTitle": "Users - API Criar usuário válido deve retornar id e status 201",
+              "timedOut": null,
+              "duration": 200,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const novo = {\n  nome: \"Novo Usuario\",\n  email: `user_${Date.now()}@serverest.dev`,\n  password: \"123456\",\n  administrador: \"true\"\n};\ncy.request({\n  method: \"POST\",\n  url: \"/usuarios\",\n  body: novo,\n  failOnStatusCode: false\n}).then(resp => {\n  expect(resp.status).to.eq(201);\n  // A API pode retornar _id ou id, então verificamos os dois de forma segura\n  expect(resp.body).to.satisfy(body => body._id || body.id);\n});",
+              "err": {},
+              "uuid": "1ef4d3a2-c47a-4cb1-8384-9c99695bbcd8",
+              "parentUUID": "3f5756b4-86f3-4cb8-b1a7-b6e7bac689b4",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Criar usuário com email já existente deve retornar erro",
+              "fullTitle": "Users - API Criar usuário com email já existente deve retornar erro",
+              "timedOut": null,
+              "duration": 394,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const emailFixo = `duplicado_${Date.now()}@serverest.dev`;\nconst baseUser = {\n  nome: \"Teste Duplicado\",\n  email: emailFixo,\n  password: \"123456\",\n  administrador: \"true\"\n};\n// primeiro cria o usuário\ncy.request({\n  method: \"POST\",\n  url: \"/usuarios\",\n  body: baseUser,\n  failOnStatusCode: false\n}).then(resp => {\n  // a primeira criação deve ser 201\n  expect(resp.status).to.eq(201);\n  // tenta criar novamente\n  cy.request({\n    method: \"POST\",\n    url: \"/usuarios\",\n    body: baseUser,\n    failOnStatusCode: false\n  }).then(respRetry => {\n    expect([400, 401, 409]).to.include(respRetry.status);\n    // valida que existe alguma chave de erro\n    expect(respRetry.body).to.satisfy(b => b.message || b.msg);\n  });\n});",
+              "err": {},
+              "uuid": "31c2a1f0-0c2b-4db9-9391-5ecf07e869f8",
+              "parentUUID": "3f5756b4-86f3-4cb8-b1a7-b6e7bac689b4",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "1ef4d3a2-c47a-4cb1-8384-9c99695bbcd8",
+            "31c2a1f0-0c2b-4db9-9391-5ecf07e869f8"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 594,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": true,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

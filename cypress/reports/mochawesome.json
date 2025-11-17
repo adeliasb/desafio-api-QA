@@ -1,0 +1,124 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-11-17T02:03:47.081Z",
+    "end": "2025-11-17T02:03:48.010Z",
+    "duration": 929,
+    "testsRegistered": 2,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "1c7e4849-1689-497a-8c6f-aeee3d8cdec4",
+      "title": "",
+      "fullFile": "cypress/e2e/api/01_login.cy.js",
+      "file": "cypress/e2e/api/01_login.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "0fc45c76-89cb-4307-9e0a-370c5ad3e3a9",
+          "title": "Login - API",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Login com credenciais válidas deve retornar token e status 200",
+              "fullTitle": "Login - API Login com credenciais válidas deve retornar token e status 200",
+              "timedOut": null,
+              "duration": 713,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// agora usamos o usuário criado no before()\nconst email = \"teste.login.qa@serverest.dev\";\nconst password = \"123456\";\ncy.request({\n  method: \"POST\",\n  url: \"/login\",\n  body: {\n    email,\n    password\n  },\n  failOnStatusCode: false\n}).then(resp => {\n  expect(resp.status).to.eq(200);\n  expect(resp.body).to.have.property(\"authorization\");\n  expect(resp.body.authorization).to.be.a(\"string\").and.to.have.length.greaterThan(10);\n});",
+              "err": {},
+              "uuid": "5e6e4120-8db6-47e0-afc3-5fc9b9240386",
+              "parentUUID": "0fc45c76-89cb-4307-9e0a-370c5ad3e3a9",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Login com credenciais inválidas deve retornar erro (não permitir acesso)",
+              "fullTitle": "Login - API Login com credenciais inválidas deve retornar erro (não permitir acesso)",
+              "timedOut": null,
+              "duration": 192,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const {\n  email,\n  password\n} = authFixture.invalid;\ncy.request({\n  method: \"POST\",\n  url: \"/login\",\n  body: {\n    email,\n    password\n  },\n  failOnStatusCode: false\n}).then(resp => {\n  expect([400, 401, 403]).to.include(resp.status);\n  expect(resp.body).to.have.property(\"message\");\n});",
+              "err": {},
+              "uuid": "cd946a47-a547-48c1-be75-c3594ad4869f",
+              "parentUUID": "0fc45c76-89cb-4307-9e0a-370c5ad3e3a9",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "5e6e4120-8db6-47e0-afc3-5fc9b9240386",
+            "cd946a47-a547-48c1-be75-c3594ad4869f"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 905,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": true,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

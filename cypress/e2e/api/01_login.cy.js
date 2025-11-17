@@ -4,22 +4,34 @@ const authHelper = require("../../support/api/utils/authHelper");
 const authFixture = require("../../fixtures/auth.json");
 
 describe("Login - API", () => {
-  it("Login com credenciais válidas deve retornar token e status 200", () => {
-    // carrega credenciais válidas da fixture
-    const { email, password } = authFixture.valid;
+  before(() => {
+    // cria usuário válido antes dos testes
+    cy.request({
+      method: "POST",
+      url: "/usuarios",
+      body: {
+        nome: "Teste QA",
+        email: "teste.login.qa@serverest.dev",
+        password: "123456",
+        administrador: "true",
+      },
+      failOnStatusCode: false, // evita quebra caso já exista
+    });
+  });
 
-    // usamos apiClient via authHelper
+  it("Login com credenciais válidas deve retornar token e status 200", () => {
+    // agora usamos o usuário criado no before()
+    const email = "teste.login.qa@serverest.dev";
+    const password = "123456";
+
     cy.request({
       method: "POST",
       url: "/login",
       body: { email, password },
       failOnStatusCode: false,
     }).then((resp) => {
-      // validações principais
-      expect(resp.status).to.be.oneOf([200, 201]); // aceitar 200 ou 201 conforme API
-      // serverest retorna campo 'authorization' com token
+      expect(resp.status).to.eq(200);
       expect(resp.body).to.have.property("authorization");
-      // token não vazio
       expect(resp.body.authorization)
         .to.be.a("string")
         .and.to.have.length.greaterThan(10);
@@ -35,10 +47,8 @@ describe("Login - API", () => {
       body: { email, password },
       failOnStatusCode: false,
     }).then((resp) => {
-      // esperamos um erro: 400 ou 401 conforme implementação
       expect([400, 401, 403]).to.include(resp.status);
-      // corpo deve ter mensagem de erro
-      expect(resp.body).to.have.property("message").or.have.property("msg");
+      expect(resp.body).to.have.property("message");
     });
   });
 });

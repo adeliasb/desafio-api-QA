@@ -1,26 +1,58 @@
 // cypress/e2e/api/04_carts.cy.js
-// Testes de Carrinhos: 2 cenários críticos
-const cartsService = require("../../support/api/services/cartsService");
-const productsService = require("../../support/api/services/productsService");
-const authFixture = require("../../fixtures/auth.json");
-const productFixture = require("../../fixtures/products.json");
-const authHelper = require("../../support/api/utils/authHelper");
 
-describe("Carrinhos - API", () => {
-  let adminToken = null;
-  let createdProductId = null;
+let adminToken;
+let productId;
+let cartId;
 
+describe("Carts - API", () => {
   before(() => {
-    const { email, password } = authFixture.valid;
-    return authHelper.getToken(email, password).then((token) => {
-      adminToken = token;
-      // criar produto para usar no carrinho
-      return productsService
-        .create(productFixture.validProduct, adminToken)
-        .then((pResp) => {
-          // extrair id do produto criado
-          createdProductId = pResp.body._id || pResp.body.id;
+    const adminUser = {
+      nome: "Admin Carrinho",
+      email: `admin_cart_${Date.now()}@serverest.dev`,
+      password: "123456",
+      administrador: "true",
+    };
+
+    // cria admin
+    cy.request({
+      method: "POST",
+      url: "/usuarios",
+      body: adminUser,
+      failOnStatusCode: false,
+    }).then(() => {
+      // login
+      cy.request({
+        method: "POST",
+        url: "/login",
+        body: {
+          email: adminUser.email,
+          password: adminUser.password,
+        },
+        failOnStatusCode: false,
+      }).then((loginResp) => {
+        expect(loginResp.status).to.eq(200);
+        adminToken = loginResp.body.authorization;
+
+        // cria produto
+        const product = {
+          nome: `Produto_Carrinho_${Date.now()}`,
+          preco: 150,
+          descricao: "Produto para testes de carrinho",
+          quantidade: 50,
+        };
+
+        cy.request({
+          method: "POST",
+          url: "/produtos",
+          headers: { Authorization: adminToken },
+          body: product,
+          failOnStatusCode: false,
+        }).then((pResp) => {
+          expect([200, 201]).to.include(pResp.status);
+          productId = pResp.body._id || pResp.body.id;
+          expect(productId).to.exist;
         });
+      });
     });
   });
 
@@ -28,42 +60,36 @@ describe("Carrinhos - API", () => {
     const cartPayload = {
       produtos: [
         {
-          idProduto: createdProductId,
-          quantidade: 1,
+          idProduto: productId,
+          quantidade: 2,
         },
       ],
     };
 
-    cartsService.create(cartPayload, adminToken).then((resp) => {
+    cy.request({
+      method: "POST",
+      url: "/carrinhos",
+      headers: { Authorization: adminToken },
+      body: cartPayload,
+      failOnStatusCode: false,
+    }).then((resp) => {
       expect([200, 201]).to.include(resp.status);
-      expect(resp.body).to.have.property("carrinho").or.have.property("_id");
+
+      cartId = resp.body.carrinho || resp.body._id || resp.body.id;
+      expect(cartId).to.exist;
     });
   });
 
-  it("Adicionar produto a carrinho existente deve retornar carrinho atualizado", () => {
-    // Primeiro criar um carrinho vazio
-    const cartPayload = { produtos: [] };
-
-    cartsService.create(cartPayload, adminToken).then((respCreate) => {
-      const cartId =
-        respCreate.body._id ||
-        (respCreate.body.carrinho && respCreate.body.carrinho._id);
-      expect(cartId).to.exist;
-
-      // payload para adicionar produto
-      const addPayload = {
-        idProduto: createdProductId,
-        quantidade: 2,
-      };
-
-      // usar addProduct
-      cartsService
-        .addProduct(cartId, addPayload, adminToken)
-        .then((respAdd) => {
-          expect([200, 201]).to.include(respAdd.status);
-          // espera que carrinho contenha lista de produtos com tamanho >= 1
-          expect(respAdd.body).to.have.property("carrinho").or.exist;
-        });
+  it("Consultar carrinho criado deve retornar lista de produtos", () => {
+    cy.request({
+      method: "GET",
+      url: `/carrinhos/${cartId}`,
+      headers: { Authorization: adminToken },
+      failOnStatusCode: false,
+    }).then((resp) => {
+      expect(resp.status).to.eq(200);
+      expect(resp.body).to.have.property("produtos");
+      expect(resp.body.produtos.length).to.be.greaterThan(0);
     });
   });
 });

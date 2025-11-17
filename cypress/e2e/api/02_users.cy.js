@@ -1,41 +1,58 @@
 // cypress/e2e/api/02_users.cy.js
-// Testes de Usuários: 2 cenários críticos
-const usersService = require("../../support/api/services/usersService");
-const authFixture = require("../../fixtures/auth.json");
-const userFixture = require("../../fixtures/users.json");
-const authHelper = require("../../support/api/utils/authHelper");
 
-describe("Usuários - API", () => {
+describe("Users - API", () => {
   it("Criar usuário válido deve retornar id e status 201", () => {
-    // criar email dinâmico para evitar conflito
-    const timestamp = Date.now();
-    const payload = Object.assign({}, userFixture.newUser);
-    payload.email = payload.email.replace("{{timestamp}}", timestamp);
+    const novo = {
+      nome: "Novo Usuario",
+      email: `user_${Date.now()}@serverest.dev`,
+      password: "123456",
+      administrador: "true",
+    };
 
-    usersService.create(payload).then((resp) => {
-      // esperar 201 ou 200 dependendo da API
-      expect([200, 201]).to.include(resp.status);
-      // validar que retornou id
-      expect(resp.body).to.have.property("_id").or.have.property("id");
+    cy.request({
+      method: "POST",
+      url: "/usuarios",
+      body: novo,
+      failOnStatusCode: false,
+    }).then((resp) => {
+      expect(resp.status).to.eq(201);
+
+      // A API pode retornar _id ou id, então verificamos os dois de forma segura
+      expect(resp.body).to.satisfy((body) => body._id || body.id);
     });
   });
 
   it("Criar usuário com email já existente deve retornar erro", () => {
-    // primeiro cria um usuário
-    const timestamp = Date.now();
-    const payload = Object.assign({}, userFixture.newUser);
-    payload.email = payload.email.replace("{{timestamp}}", timestamp);
+    const emailFixo = `duplicado_${Date.now()}@serverest.dev`;
 
-    usersService.create(payload).then((respCreate) => {
-      expect([200, 201]).to.include(respCreate.status);
+    const baseUser = {
+      nome: "Teste Duplicado",
+      email: emailFixo,
+      password: "123456",
+      administrador: "true",
+    };
 
-      // tentar criar igual novamente (mesmo email) -> espera erro
-      usersService.create(payload).then((respRetry) => {
+    // primeiro cria o usuário
+    cy.request({
+      method: "POST",
+      url: "/usuarios",
+      body: baseUser,
+      failOnStatusCode: false,
+    }).then((resp) => {
+      // a primeira criação deve ser 201
+      expect(resp.status).to.eq(201);
+
+      // tenta criar novamente
+      cy.request({
+        method: "POST",
+        url: "/usuarios",
+        body: baseUser,
+        failOnStatusCode: false,
+      }).then((respRetry) => {
         expect([400, 401, 409]).to.include(respRetry.status);
-        // validar mensagem de erro presente
-        expect(respRetry.body)
-          .to.have.property("message")
-          .or.have.property("msg");
+
+        // valida que existe alguma chave de erro
+        expect(respRetry.body).to.satisfy((b) => b.message || b.msg);
       });
     });
   });

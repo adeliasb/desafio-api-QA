@@ -1,0 +1,124 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 2,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-11-17T02:03:50.388Z",
+    "end": "2025-11-17T02:03:51.270Z",
+    "duration": 882,
+    "testsRegistered": 2,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "fdd32374-1863-486a-b077-7771071c4b3b",
+      "title": "",
+      "fullFile": "cypress/e2e/api/03_products.cy.js",
+      "file": "cypress/e2e/api/03_products.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "5ad68d78-3e97-4dd2-9d81-3a800e08e059",
+          "title": "Products - API",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "Criar produto válido deve retornar id e status 201",
+              "fullTitle": "Products - API Criar produto válido deve retornar id e status 201",
+              "timedOut": null,
+              "duration": 657,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const payload = {\n  nome: `Produto_${Date.now()}`,\n  preco: 100,\n  descricao: \"Produto de teste\",\n  quantidade: 10\n};\ncy.request({\n  method: \"POST\",\n  url: \"/produtos\",\n  headers: {\n    Authorization: adminToken\n  },\n  body: payload,\n  failOnStatusCode: false\n}).then(resp => {\n  // aceitar 200 ou 201 conforme comportamento da API\n  expect([200, 201]).to.include(resp.status);\n  // validar id de forma segura (pode ser _id ou id)\n  expect(resp.body).to.satisfy(b => !!(b._id || b.id));\n});",
+              "err": {},
+              "uuid": "f1bd8d1a-ea98-406a-bdb5-21596e695179",
+              "parentUUID": "5ad68d78-3e97-4dd2-9d81-3a800e08e059",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "Criar produto com dados inválidos deve retornar erro de validação",
+              "fullTitle": "Products - API Criar produto com dados inválidos deve retornar erro de validação",
+              "timedOut": null,
+              "duration": 199,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const invalidPayload = {\n  // inválido: nome em branco, preço negativo, quantidade negativa\n  nome: \"\",\n  preco: -10,\n  descricao: \"\",\n  quantidade: -5\n};\ncy.request({\n  method: \"POST\",\n  url: \"/produtos\",\n  headers: {\n    Authorization: adminToken\n  },\n  body: invalidPayload,\n  failOnStatusCode: false\n}).then(resp => {\n  // status de validação esperado\n  expect([400, 422]).to.include(resp.status);\n  // corpo pode vir em formatos diferentes. aceitamos qualquer um dos formatos abaixo:\n  // 1) { message: \"...\"} ou { msg: \"...\" }\n  // 2) objeto com chaves de validação: { nome: \"...\", preco: \"...\", ... }\n  // 3) array de erros: { errors: [...] } ou diretamente [ ... ]\n  const body = resp.body;\n  const hasMessage = !!(body && (body.message || body.msg));\n  const hasValidationKeys = !!(body && (body.nome !== undefined || body.preco !== undefined || body.quantidade !== undefined));\n  const isErrorsArray = Array.isArray(body) || body && Array.isArray(body.errors);\n  expect(hasMessage || hasValidationKeys || isErrorsArray).to.equal(true);\n  // se quiser, pode registrar o body no log para inspeção:\n  // cy.log(\"Resposta de validação:\", JSON.stringify(body));\n});",
+              "err": {},
+              "uuid": "b675956b-755f-476c-b9dd-bb83606636d4",
+              "parentUUID": "5ad68d78-3e97-4dd2-9d81-3a800e08e059",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "f1bd8d1a-ea98-406a-bdb5-21596e695179",
+            "b675956b-755f-476c-b9dd-bb83606636d4"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 856,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": true,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

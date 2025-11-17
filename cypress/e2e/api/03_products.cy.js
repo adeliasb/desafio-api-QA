@@ -1,40 +1,110 @@
 // cypress/e2e/api/03_products.cy.js
-// Testes de Produtos: 2 cenários críticos
-const productsService = require("../../support/api/services/productsService");
-const authFixture = require("../../fixtures/auth.json");
-const productFixture = require("../../fixtures/products.json");
-const authHelper = require("../../support/api/utils/authHelper");
 
-describe("Produtos - API", () => {
-  // Antes de criar produto, obtemos token de admin (se necessário)
-  let adminToken = null;
+let adminToken;
 
+describe("Products - API", () => {
   before(() => {
-    // tentamos obter token com credenciais válidas da fixture
-    const { email, password } = authFixture.valid;
-    authHelper.getToken(email, password).then((token) => {
-      adminToken = token;
+    const adminUser = {
+      nome: "Admin Teste",
+      email: `admin_${Date.now()}@serverest.dev`,
+      password: "123456",
+      administrador: "true",
+    };
+
+    // 1) criar usuário admin (se já existir, não quebra)
+    cy.request({
+      method: "POST",
+      url: "/usuarios",
+      body: adminUser,
+      failOnStatusCode: false,
+    }).then((resp) => {
+      // se já existia, servidor pode devolver 400/409; aceitaremos 201 para criação nova
+      if (resp.status === 201) {
+        // criado com sucesso
+      }
+
+      // 2) logar com o admin criado (ou existente)
+      cy.request({
+        method: "POST",
+        url: "/login",
+        body: {
+          email: adminUser.email,
+          password: adminUser.password,
+        },
+        failOnStatusCode: false,
+      }).then((loginResp) => {
+        // login deve retornar 200 e um token
+        expect(loginResp.status).to.eq(200);
+        adminToken = loginResp.body.authorization;
+      });
     });
   });
 
   it("Criar produto válido deve retornar id e status 201", () => {
-    const payload = productFixture.validProduct;
+    const payload = {
+      nome: `Produto_${Date.now()}`,
+      preco: 100,
+      descricao: "Produto de teste",
+      quantidade: 10,
+    };
 
-    productsService.create(payload, adminToken).then((resp) => {
+    cy.request({
+      method: "POST",
+      url: "/produtos",
+      headers: {
+        Authorization: adminToken,
+      },
+      body: payload,
+      failOnStatusCode: false,
+    }).then((resp) => {
+      // aceitar 200 ou 201 conforme comportamento da API
       expect([200, 201]).to.include(resp.status);
-      expect(resp.body).to.have.property("_id").or.have.property("id");
+
+      // validar id de forma segura (pode ser _id ou id)
+      expect(resp.body).to.satisfy((b) => !!(b._id || b.id));
     });
   });
 
   it("Criar produto com dados inválidos deve retornar erro de validação", () => {
-    const invalidPayload = Object.assign({}, productFixture.validProduct);
-    // invalidar removendo nome
-    delete invalidPayload.nome;
+    const invalidPayload = {
+      // inválido: nome em branco, preço negativo, quantidade negativa
+      nome: "",
+      preco: -10,
+      descricao: "",
+      quantidade: -5,
+    };
 
-    productsService.create(invalidPayload, adminToken).then((resp) => {
-      // esperamos um erro de validação
+    cy.request({
+      method: "POST",
+      url: "/produtos",
+      headers: {
+        Authorization: adminToken,
+      },
+      body: invalidPayload,
+      failOnStatusCode: false,
+    }).then((resp) => {
+      // status de validação esperado
       expect([400, 422]).to.include(resp.status);
-      expect(resp.body).to.have.property("message").or.have.property("msg");
+
+      // corpo pode vir em formatos diferentes. aceitamos qualquer um dos formatos abaixo:
+      // 1) { message: "..."} ou { msg: "..." }
+      // 2) objeto com chaves de validação: { nome: "...", preco: "...", ... }
+      // 3) array de erros: { errors: [...] } ou diretamente [ ... ]
+      const body = resp.body;
+
+      const hasMessage = !!(body && (body.message || body.msg));
+      const hasValidationKeys = !!(
+        body &&
+        (body.nome !== undefined ||
+          body.preco !== undefined ||
+          body.quantidade !== undefined)
+      );
+      const isErrorsArray =
+        Array.isArray(body) || (body && Array.isArray(body.errors));
+
+      expect(hasMessage || hasValidationKeys || isErrorsArray).to.equal(true);
+      // se quiser, pode registrar o body no log para inspeção:
+      // cy.log("Resposta de validação:", JSON.stringify(body));
     });
   });
 });
