@@ -1,0 +1,8 @@
+{
+  "newUser": {
+    "nome": "Adelia Test",
+    "email": "adelia.teste+{{timestamp}}@mail.com",
+    "password": "Senha@123",
+    "administrador": "true"
+  }
+}

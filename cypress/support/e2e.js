@@ -14,4 +14,10 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import "./commands";
+
+// cypress/support/e2e.js
+// Este arquivo é carregado antes de cada spec de e2e.
+// Importa comandos customizados ou configurações globais.
+
+import "./api"; // importa qualquer inicialização específica do namespace api

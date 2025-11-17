@@ -1,18 +1,21 @@
 {
-  "name": "desafio-api-qa",
+  "name": "desafio-api-QA",
   "version": "1.0.0",
-  "description": "",
+  "description": "Desafio de automação de API",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cy:open": "cypress open",
+    "test": "cypress run",
+    "test:report": "cypress run --reporter mochawesome",
+    "merge-reports": "mochawesome-merge cypress/reports/*.json > cypress/reports/report-combined.json",
+    "generate-report": "marge cypress/reports/report-combined.json -f report -o cypress/reports"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Adélia dos Santos Barroso",
+  "license": "MIT",
   "devDependencies": {
-    "cypress": "^15.3.0",
+    "cypress": "^13.6.0",
     "mochawesome": "^7.1.4",
     "mochawesome-merge": "^5.0.0",
-    "mochawesome-report-generator": "^6.3.2"
+    "mochawesome-report-generator": "^6.3.0"
   }
 }

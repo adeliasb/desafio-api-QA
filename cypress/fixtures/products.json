@@ -1,0 +1,8 @@
+{
+  "validProduct": {
+    "nome": "Mouse Gamer XYZ",
+    "preco": 199.9,
+    "descricao": "Mouse de teste",
+    "quantidade": 10
+  }
+}
